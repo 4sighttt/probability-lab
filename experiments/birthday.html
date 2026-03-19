@@ -447,6 +447,10 @@
       state.latestGroup = result.days;
       renderGroup(result.days, result.countMap);
 
+      state.trials += 1;
+      if (result.hasMatch) state.matches += 1;
+      updateStats();
+
       if (result.hasMatch) {
         statusEl.innerHTML = `<span class="bad">중복 생일 발생</span><br>이 그룹 안에 같은 생일인 사람이 한 쌍 이상 있습니다.`;
       } else {
