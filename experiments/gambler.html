@@ -1,1 +1,631 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>도박사의 오류 실험</title>
+  <style>
+    :root {
+      --bg: #f6f3ea;
+      --panel: #fffdf7;
+      --line: #d8d1bf;
+      --text: #1f1f1f;
+      --muted: #66604f;
+      --accent: #7a5c2e;
+      --good: #1f7a3d;
+      --bad: #b23a2c;
+      --coin-a: #a44a3f;
+      --coin-b: #56739a;
+      --track: #e7dfcf;
+    }
 
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    .wrap {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+
+    .topbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 31px;
+    }
+
+    .sub {
+      margin: 0 0 20px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.95fr;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+    }
+
+    .section-title {
+      margin: 0 0 14px;
+      font-size: 18px;
+    }
+
+    .controls {
+      display: grid;
+      gap: 14px;
+    }
+
+    .control-box {
+      background: #faf8f0;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .range-value {
+      color: var(--accent);
+      font-size: 22px;
+      font-weight: 800;
+      min-width: 54px;
+      text-align: right;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    .actions, .sim-actions, .preset-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    button.control {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--text);
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-size: 15px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    button.control.primary {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .status {
+      min-height: 86px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: #f3efe3;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 16px;
+      margin-top: 12px;
+    }
+
+    .flip-strip {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .flip {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: white;
+      min-height: 74px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      text-align: center;
+    }
+
+    .flip .coin {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 5px;
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.18);
+    }
+
+    .flip.heads .coin { background: linear-gradient(180deg, #bf6a5f, var(--coin-a)); }
+    .flip.tails .coin { background: linear-gradient(180deg, #708fb8, var(--coin-b)); }
+    .flip .idx { font-size: 11px; color: var(--muted); }
+    .flip .label { font-size: 12px; font-weight: 700; }
+
+    .last-flip {
+      margin-top: 14px;
+      border: 1px dashed #cdbf9d;
+      background: #fcf8ee;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #faf8f0;
+    }
+
+    .stat .label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .stat .value {
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    .big-stat {
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #faf8f0;
+    }
+
+    .progress {
+      margin-top: 14px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 14px;
+    }
+
+    .bar {
+      height: 18px;
+      width: 100%;
+      border-radius: 999px;
+      background: var(--track);
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .fill {
+      height: 100%;
+      width: 0%;
+      transition: width 0.18s ease;
+    }
+
+    .fill.heads { background: linear-gradient(90deg, #bf6a5f, var(--coin-a)); }
+    .fill.tails { background: linear-gradient(90deg, #708fb8, var(--coin-b)); }
+
+    .theory-box {
+      margin-top: 14px;
+      padding: 14px;
+      border: 1px dashed #cdbf9d;
+      border-radius: 12px;
+      background: #fcf8ee;
+      font-size: 14px;
+      color: #564a39;
+      line-height: 1.65;
+    }
+
+    .scenario-list {
+      margin-top: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .scenario {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #faf8f0;
+      padding: 12px;
+    }
+
+    .scenario strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    .result-good { color: var(--good); font-weight: 700; }
+    .result-bad { color: var(--bad); font-weight: 700; }
+
+    @media (max-width: 920px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 720px) {
+      .flip-strip { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+      h1 { font-size: 27px; }
+    }
+
+    @media (max-width: 520px) {
+      .stats { grid-template-columns: 1fr; }
+      .flip-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="back-link" href="../index.html">← 목록으로</a>
+    </div>
+
+    <h1>도박사의 오류 실험</h1>
+    <p class="sub">앞에서 같은 결과가 여러 번 나왔다고 해서, 다음 번에 반대 결과가 더 잘 나오는 것은 아닙니다. 독립 시행에서는 매번 확률이 다시 시작됩니다.</p>
+
+    <div class="grid">
+      <section class="card">
+        <h2 class="section-title">직접 실험</h2>
+
+        <div class="controls">
+          <div class="control-box">
+            <div class="label-row">
+              <span>최근 기록 길이</span>
+              <span class="range-value" id="historySizeValue">8</span>
+            </div>
+            <input id="historySize" type="range" min="3" max="12" step="1" value="8" />
+          </div>
+        </div>
+
+        <div class="preset-actions">
+          <button class="control" data-preset="HHHHH">앞면 5연속</button>
+          <button class="control" data-preset="TTTTT">뒷면 5연속</button>
+          <button class="control" data-preset="HTHTHT">번갈아 나옴</button>
+          <button class="control" data-preset="random">랜덤 예시</button>
+        </div>
+
+        <div class="actions">
+          <button class="control" id="flipOneBtn">동전 1번 던지기</button>
+          <button class="control" id="flipTenBtn">10번 빠르게 던지기</button>
+          <button class="control primary" id="resetRoundBtn">기록 초기화</button>
+        </div>
+
+        <div class="status" id="status">먼저 동전을 던져보세요. 같은 결과가 여러 번 이어져도 다음 번 확률은 여전히 50% 대 50%입니다.</div>
+
+        <div class="flip-strip" id="flipStrip"></div>
+
+        <div class="last-flip" id="lastFlipBox">
+          아직 최근 기록이 없습니다.
+        </div>
+      </section>
+
+      <aside class="card">
+        <h2 class="section-title">누적 통계</h2>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="label">총 던진 횟수</div>
+            <div class="value" id="totalFlips">0</div>
+          </div>
+          <div class="stat">
+            <div class="label">현재 연속 길이</div>
+            <div class="value" id="currentStreak">0</div>
+          </div>
+        </div>
+
+        <div class="big-stat">
+          <div class="label">가장 긴 연속</div>
+          <div class="value" id="maxStreak">0</div>
+        </div>
+
+        <div class="progress">
+          <div class="progress-label">
+            <span>앞면 비율</span>
+            <span id="headsRate">0.0%</span>
+          </div>
+          <div class="bar"><div class="fill heads" id="headsFill"></div></div>
+        </div>
+
+        <div class="progress">
+          <div class="progress-label">
+            <span>뒷면 비율</span>
+            <span id="tailsRate">0.0%</span>
+          </div>
+          <div class="bar"><div class="fill tails" id="tailsFill"></div></div>
+        </div>
+
+        <div class="stats" style="margin-top:12px;">
+          <div class="stat">
+            <div class="label">앞면 횟수</div>
+            <div class="value" id="headsCount">0</div>
+          </div>
+          <div class="stat">
+            <div class="label">뒷면 횟수</div>
+            <div class="value" id="tailsCount">0</div>
+          </div>
+        </div>
+
+        <div class="sim-actions">
+          <button class="control" data-run="100">자동 100회</button>
+          <button class="control" data-run="1000">자동 1000회</button>
+          <button class="control" data-run="10000">자동 10000회</button>
+          <button class="control primary" id="resetStatsBtn">전체 통계 초기화</button>
+        </div>
+
+        <div class="theory-box" id="theoryBox">
+          핵심: 동전 던지기는 매번 서로 독립입니다. 직전에 앞면이 5번 연속 나왔더라도, 다음 한 번의 앞면 확률은 여전히 50%입니다.
+        </div>
+
+        <div class="scenario-list">
+          <div class="scenario">
+            <strong>오해</strong>
+            “앞면이 계속 나왔으니 이제는 뒷면이 나올 차례다.”
+          </div>
+          <div class="scenario">
+            <strong>실제</strong>
+            독립 시행이면 <span class="result-good">직전 기록은 다음 1회의 확률을 바꾸지 못합니다.</span>
+          </div>
+          <div class="scenario">
+            <strong>주의</strong>
+            긴 구간 전체의 비율이 50%에 가까워지는 경향과, <span class="result-bad">다음 1회가 보정된다는 주장</span>은 전혀 다른 말입니다.
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const historySizeInput = document.getElementById('historySize');
+    const historySizeValue = document.getElementById('historySizeValue');
+    const flipStrip = document.getElementById('flipStrip');
+    const statusEl = document.getElementById('status');
+    const lastFlipBox = document.getElementById('lastFlipBox');
+    const theoryBox = document.getElementById('theoryBox');
+
+    const totalFlipsEl = document.getElementById('totalFlips');
+    const currentStreakEl = document.getElementById('currentStreak');
+    const maxStreakEl = document.getElementById('maxStreak');
+    const headsRateEl = document.getElementById('headsRate');
+    const tailsRateEl = document.getElementById('tailsRate');
+    const headsFillEl = document.getElementById('headsFill');
+    const tailsFillEl = document.getElementById('tailsFill');
+    const headsCountEl = document.getElementById('headsCount');
+    const tailsCountEl = document.getElementById('tailsCount');
+
+    const state = {
+      totalFlips: 0,
+      heads: 0,
+      tails: 0,
+      currentStreak: 0,
+      maxStreak: 0,
+      currentSide: null,
+      history: []
+    };
+
+    function tossCoin() {
+      return Math.random() < 0.5 ? 'H' : 'T';
+    }
+
+    function labelOf(side) {
+      return side === 'H' ? '앞면' : '뒷면';
+    }
+
+    function addResult(side) {
+      state.totalFlips += 1;
+      if (side === 'H') state.heads += 1;
+      else state.tails += 1;
+
+      if (state.currentSide === side) {
+        state.currentStreak += 1;
+      } else {
+        state.currentSide = side;
+        state.currentStreak = 1;
+      }
+
+      state.maxStreak = Math.max(state.maxStreak, state.currentStreak);
+      state.history.push(side);
+      render();
+    }
+
+    function setHistoryFromPreset(seq) {
+      resetRoundOnly();
+      const source = seq === 'random'
+        ? Array.from({ length: 6 }, () => tossCoin()).join('')
+        : seq;
+
+      for (const side of source) {
+        addResult(side);
+      }
+
+      statusEl.innerHTML = `예시 기록을 만들었습니다. 지금까지 <strong>${source.length}번</strong> 중 마지막은 <strong>${labelOf(source[source.length - 1])}</strong>입니다.`;
+      updateInterpretation();
+    }
+
+    function renderHistory() {
+      const recentSize = Number(historySizeInput.value);
+      const recent = state.history.slice(-recentSize);
+      flipStrip.innerHTML = '';
+
+      if (recent.length === 0) {
+        for (let i = 0; i < recentSize; i++) {
+          const box = document.createElement('div');
+          box.className = 'flip';
+          box.innerHTML = '<div class="coin" style="background:#cabfa8;color:#fff;">?</div><div class="label">대기</div><div class="idx">-</div>';
+          flipStrip.appendChild(box);
+        }
+        return;
+      }
+
+      recent.forEach((side, index) => {
+        const box = document.createElement('div');
+        box.className = `flip ${side === 'H' ? 'heads' : 'tails'}`;
+        box.innerHTML = `
+          <div class="coin">${side === 'H' ? '앞' : '뒤'}</div>
+          <div class="label">${labelOf(side)}</div>
+          <div class="idx">${state.history.length - recent.length + index + 1}회</div>
+        `;
+        flipStrip.appendChild(box);
+      });
+    }
+
+    function updateInterpretation() {
+      if (state.totalFlips === 0) {
+        lastFlipBox.textContent = '아직 최근 기록이 없습니다.';
+        theoryBox.textContent = '핵심: 동전 던지기는 매번 서로 독립입니다. 직전에 앞면이 5번 연속 나왔더라도, 다음 한 번의 앞면 확률은 여전히 50%입니다.';
+        return;
+      }
+
+      const last = state.currentSide;
+      const opposite = last === 'H' ? 'T' : 'H';
+      const streak = state.currentStreak;
+      const streakText = `${labelOf(last)} ${streak}연속`;
+
+      lastFlipBox.innerHTML = `최근 끝부분은 <strong>${streakText}</strong>입니다.<br>많은 사람이 여기서 “이제 ${labelOf(opposite)}이 더 잘 나와야 한다”고 느끼지만, 다음 1회의 확률은 여전히 <strong>앞면 50% / 뒷면 50%</strong>입니다.`;
+
+      if (streak >= 5) {
+        statusEl.innerHTML = `<strong>${streakText}</strong>이 나왔습니다. 하지만 이것은 다음 1회를 밀어주지 않습니다.`;
+        theoryBox.innerHTML = `지금처럼 같은 결과가 길게 이어지면 직관은 “반대쪽이 나올 차례”라고 말하기 쉽습니다. 그러나 독립 시행에서는 <strong>직전 연속 자체가 다음 확률을 바꾸지 못합니다.</strong> 긴 구간의 평균 회귀와 다음 한 번의 확률을 혼동하면 도박사의 오류가 생깁니다.`;
+      } else if (streak >= 3) {
+        statusEl.innerHTML = `${streakText}입니다. 벌써 “이제 반대가 나오겠지”라는 느낌이 들기 쉬운 구간입니다.`;
+        theoryBox.innerHTML = `연속이 짧아도 사람은 패턴을 과대해석하는 경향이 있습니다. 하지만 다음 1회의 확률은 여전히 동일합니다.`;
+      } else {
+        statusEl.textContent = '연속이 길지 않아도 원리는 같습니다. 직전 결과는 다음 1회의 확률을 바꾸지 않습니다.';
+        theoryBox.textContent = '핵심: 각 던지기는 독립입니다. 앞의 기록은 설명할 수 있어도, 다음 1회의 확률을 직접 바꾸지는 못합니다.';
+      }
+    }
+
+    function renderStats() {
+      totalFlipsEl.textContent = state.totalFlips.toLocaleString();
+      currentStreakEl.textContent = state.currentStreak.toLocaleString();
+      maxStreakEl.textContent = state.maxStreak.toLocaleString();
+      headsCountEl.textContent = state.heads.toLocaleString();
+      tailsCountEl.textContent = state.tails.toLocaleString();
+
+      const headsRate = state.totalFlips === 0 ? 0 : (state.heads / state.totalFlips) * 100;
+      const tailsRate = state.totalFlips === 0 ? 0 : (state.tails / state.totalFlips) * 100;
+      headsRateEl.textContent = `${headsRate.toFixed(1)}%`;
+      tailsRateEl.textContent = `${tailsRate.toFixed(1)}%`;
+      headsFillEl.style.width = `${headsRate}%`;
+      tailsFillEl.style.width = `${tailsRate}%`;
+    }
+
+    function render() {
+      historySizeValue.textContent = historySizeInput.value;
+      renderHistory();
+      renderStats();
+      updateInterpretation();
+    }
+
+    function resetRoundOnly() {
+      state.totalFlips = 0;
+      state.heads = 0;
+      state.tails = 0;
+      state.currentStreak = 0;
+      state.maxStreak = 0;
+      state.currentSide = null;
+      state.history = [];
+      render();
+    }
+
+    document.getElementById('flipOneBtn').addEventListener('click', () => {
+      addResult(tossCoin());
+    });
+
+    document.getElementById('flipTenBtn').addEventListener('click', () => {
+      for (let i = 0; i < 10; i++) addResult(tossCoin());
+    });
+
+    document.getElementById('resetRoundBtn').addEventListener('click', () => {
+      resetRoundOnly();
+      statusEl.textContent = '기록을 초기화했습니다. 다시 시작하세요.';
+    });
+
+    document.getElementById('resetStatsBtn').addEventListener('click', () => {
+      resetRoundOnly();
+      statusEl.textContent = '전체 통계를 초기화했습니다.';
+    });
+
+    historySizeInput.addEventListener('input', render);
+
+    document.querySelectorAll('[data-run]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const n = Number(btn.dataset.run);
+        for (let i = 0; i < n; i++) addResult(tossCoin());
+        statusEl.innerHTML = `자동으로 <strong>${n.toLocaleString()}회</strong> 던졌습니다. 비율은 점점 50:50에 가까워질 수 있어도, 각 다음 1회의 확률은 항상 새로 시작됩니다.`;
+      });
+    });
+
+    document.querySelectorAll('[data-preset]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setHistoryFromPreset(btn.dataset.preset);
+      });
+    });
+
+    render();
+  </script>
+</body>
+</html>
