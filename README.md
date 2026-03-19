@@ -1,1 +1,1 @@
-# monty_hall_experiment
+# probability-lab
