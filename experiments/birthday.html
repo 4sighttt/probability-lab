@@ -1,1 +1,514 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>생일 문제 실험</title>
+  <style>
+    :root {
+      --bg: #f6f3ea;
+      --panel: #fffdf7;
+      --line: #d8d1bf;
+      --text: #1f1f1f;
+      --muted: #66604f;
+      --accent: #7a5c2e;
+      --good: #1f7a3d;
+      --bad: #b23a2c;
+      --track: #e7dfcf;
+    }
 
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 31px;
+    }
+
+    .sub {
+      margin: 0 0 20px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .topbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.95fr;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+    }
+
+    .section-title {
+      margin: 0 0 14px;
+      font-size: 18px;
+    }
+
+    .controls {
+      display: grid;
+      gap: 14px;
+    }
+
+    .control-box {
+      background: #faf8f0;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .range-value {
+      color: var(--accent);
+      font-size: 22px;
+      font-weight: 800;
+      min-width: 48px;
+      text-align: right;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    .actions, .sim-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    button.control {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--text);
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-size: 15px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    button.control.primary {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .status {
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: #f3efe3;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 16px;
+      margin-top: 12px;
+    }
+
+    .people-grid {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .person {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: white;
+      padding: 10px 6px;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .person .emoji {
+      font-size: 20px;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .person.match {
+      background: #fde8e5;
+      border-color: #e2a7a0;
+    }
+
+    .person small {
+      display: block;
+      color: var(--muted);
+      margin-top: 2px;
+      font-size: 11px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #faf8f0;
+    }
+
+    .stat .label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .stat .value {
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    .big-stat {
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #faf8f0;
+    }
+
+    .progress {
+      margin-top: 14px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 14px;
+    }
+
+    .bar {
+      height: 18px;
+      width: 100%;
+      border-radius: 999px;
+      background: var(--track);
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), #9a7640);
+      transition: width 0.18s ease;
+    }
+
+    .theory-box {
+      margin-top: 14px;
+      padding: 14px;
+      border: 1px dashed #cdbf9d;
+      border-radius: 12px;
+      background: #fcf8ee;
+      color: #5d533f;
+      font-size: 14px;
+    }
+
+    .note {
+      margin-top: 14px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .good { color: var(--good); font-weight: 800; }
+    .bad { color: var(--bad); font-weight: 800; }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .people-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 560px) {
+      h1 { font-size: 27px; }
+      .people-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="back-link" href="../index.html">← 목록으로</a>
+    </div>
+
+    <h1>생일 문제 실험</h1>
+    <p class="sub">사람 수가 많지 않아 보여도, 같은 생일이 한 쌍 이상 존재할 확률은 빠르게 올라갑니다. 직접 한 번 뽑아보고, 자동 반복 실험으로 확인해보세요.</p>
+
+    <div class="grid">
+      <section class="card">
+        <h2 class="section-title">직접 실험</h2>
+
+        <div class="controls">
+          <div class="control-box">
+            <div class="label-row">
+              <span>사람 수</span>
+              <span class="range-value" id="groupSizeValue">23</span>
+            </div>
+            <input id="groupSize" type="range" min="2" max="60" value="23" />
+            <div class="note">23명에서 확률이 약 50.7%가 됩니다.</div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="control primary" id="runOnceBtn">한 번 뽑기</button>
+          <button class="control" id="reshuffleBtn">다시 뽑기</button>
+        </div>
+
+        <div class="status" id="status">사람 수를 정한 뒤 생일을 뽑아보세요.</div>
+
+        <div class="theory-box" id="theoryBox">
+          이론상 중복 생일 확률: <strong id="theoryRate">50.7%</strong>
+        </div>
+
+        <div class="people-grid" id="peopleGrid"></div>
+      </section>
+
+      <aside class="card">
+        <h2 class="section-title">반복 실험 통계</h2>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="label">실험 횟수</div>
+            <div class="value" id="trialCount">0</div>
+          </div>
+          <div class="stat">
+            <div class="label">중복 발생</div>
+            <div class="value" id="matchCount">0</div>
+          </div>
+        </div>
+
+        <div class="big-stat">
+          <div class="label">실험상 확률</div>
+          <div class="value" id="simRate">0.0%</div>
+        </div>
+
+        <div class="progress">
+          <div class="progress-label">
+            <span>중복 생일이 나온 비율</span>
+            <span id="progressText">0.0%</span>
+          </div>
+          <div class="bar"><div class="fill" id="progressFill"></div></div>
+        </div>
+
+        <div class="sim-actions">
+          <button class="control" data-run="10">자동 10회</button>
+          <button class="control" data-run="100">자동 100회</button>
+          <button class="control" data-run="1000">자동 1000회</button>
+          <button class="control primary" id="resetStatsBtn">통계 초기화</button>
+        </div>
+
+        <div class="theory-box">
+          <strong>핵심 포인트</strong><br>
+          사람 수가 늘수록 비교해야 할 “쌍”의 수가 급격히 증가합니다. 그래서 직관보다 훨씬 빨리 중복 확률이 커집니다.
+        </div>
+
+        <div class="note">단순화를 위해 윤년 없이 365일을 동일 확률로 가정했습니다.</div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const groupSizeInput = document.getElementById('groupSize');
+    const groupSizeValue = document.getElementById('groupSizeValue');
+    const theoryRateEl = document.getElementById('theoryRate');
+    const theoryBox = document.getElementById('theoryBox');
+    const statusEl = document.getElementById('status');
+    const peopleGridEl = document.getElementById('peopleGrid');
+
+    const trialCountEl = document.getElementById('trialCount');
+    const matchCountEl = document.getElementById('matchCount');
+    const simRateEl = document.getElementById('simRate');
+    const progressTextEl = document.getElementById('progressText');
+    const progressFillEl = document.getElementById('progressFill');
+
+    const state = {
+      trials: 0,
+      matches: 0,
+      latestGroup: []
+    };
+
+    const monthDays = [31,28,31,30,31,30,31,31,30,31,30,31];
+    const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+    function randomDayOfYear() {
+      return Math.floor(Math.random() * 365) + 1;
+    }
+
+    function dayToMonthDay(dayOfYear) {
+      let remaining = dayOfYear;
+      for (let i = 0; i < monthDays.length; i++) {
+        if (remaining <= monthDays[i]) {
+          return `${monthNames[i]} ${remaining}일`;
+        }
+        remaining -= monthDays[i];
+      }
+      return '12월 31일';
+    }
+
+    function birthdayCollisionProbability(n) {
+      if (n <= 1) return 0;
+      let noMatch = 1;
+      for (let i = 0; i < n; i++) {
+        noMatch *= (365 - i) / 365;
+      }
+      return 1 - noMatch;
+    }
+
+    function createGroup(size) {
+      const days = [];
+      const countMap = new Map();
+      for (let i = 0; i < size; i++) {
+        const day = randomDayOfYear();
+        days.push(day);
+        countMap.set(day, (countMap.get(day) || 0) + 1);
+      }
+      return {
+        days,
+        countMap,
+        hasMatch: days.some(day => countMap.get(day) >= 2)
+      };
+    }
+
+    function renderGroup(days, countMap) {
+      peopleGridEl.innerHTML = '';
+      days.forEach((day, index) => {
+        const item = document.createElement('div');
+        const matched = countMap.get(day) >= 2;
+        item.className = `person${matched ? ' match' : ''}`;
+        item.innerHTML = `
+          <span class="emoji">${matched ? '🎂' : '🙂'}</span>
+          ${index + 1}번
+          <small>${dayToMonthDay(day)}</small>
+        `;
+        peopleGridEl.appendChild(item);
+      });
+    }
+
+    function runOnce() {
+      const size = Number(groupSizeInput.value);
+      const result = createGroup(size);
+      state.latestGroup = result.days;
+      renderGroup(result.days, result.countMap);
+
+      if (result.hasMatch) {
+        statusEl.innerHTML = `<span class="bad">중복 생일 발생</span><br>이 그룹 안에 같은 생일인 사람이 한 쌍 이상 있습니다.`;
+      } else {
+        statusEl.innerHTML = `<span class="good">중복 없음</span><br>이번에는 모든 사람이 서로 다른 생일을 가졌습니다.`;
+      }
+    }
+
+    function simulate(n) {
+      const size = Number(groupSizeInput.value);
+      let localMatches = 0;
+      for (let i = 0; i < n; i++) {
+        const result = createGroup(size);
+        if (result.hasMatch) localMatches += 1;
+      }
+      state.trials += n;
+      state.matches += localMatches;
+      updateStats();
+      statusEl.innerHTML = `자동 실험 ${n.toLocaleString()}회 완료<br>현재 사람 수 ${size}명 기준 결과가 통계에 반영되었습니다.`;
+    }
+
+    function updateStats() {
+      const rate = state.trials === 0 ? 0 : (state.matches / state.trials) * 100;
+      trialCountEl.textContent = state.trials.toLocaleString();
+      matchCountEl.textContent = state.matches.toLocaleString();
+      simRateEl.textContent = `${rate.toFixed(1)}%`;
+      progressTextEl.textContent = `${rate.toFixed(1)}%`;
+      progressFillEl.style.width = `${rate}%`;
+    }
+
+    function updateTheory() {
+      const size = Number(groupSizeInput.value);
+      const theory = birthdayCollisionProbability(size) * 100;
+      groupSizeValue.textContent = size;
+      theoryRateEl.textContent = `${theory.toFixed(1)}%`;
+      theoryBox.innerHTML = `이론상 중복 생일 확률: <strong>${theory.toFixed(1)}%</strong>`;
+    }
+
+    groupSizeInput.addEventListener('input', () => {
+      updateTheory();
+      statusEl.textContent = '사람 수가 바뀌었습니다. 다시 뽑아보세요.';
+      peopleGridEl.innerHTML = '';
+    });
+
+    document.getElementById('runOnceBtn').addEventListener('click', runOnce);
+    document.getElementById('reshuffleBtn').addEventListener('click', runOnce);
+
+    document.querySelectorAll('[data-run]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        simulate(Number(btn.dataset.run));
+      });
+    });
+
+    document.getElementById('resetStatsBtn').addEventListener('click', () => {
+      state.trials = 0;
+      state.matches = 0;
+      updateStats();
+      statusEl.textContent = '통계를 초기화했습니다. 다시 실험해보세요.';
+    });
+
+    updateTheory();
+    updateStats();
+    runOnce();
+  </script>
+</body>
+</html>
