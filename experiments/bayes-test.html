@@ -1,1 +1,464 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>베이즈 검사 실험</title>
+<style>
+:root{
+  --bg:#f6f3ea;
+  --panel:#fffdf7;
+  --line:#d8d1bf;
+  --text:#1f1f1f;
+  --muted:#66604f;
+  --accent:#7a5c2e;
+  --accent-soft:#efe6d2;
+  --good:#2f6b3c;
+  --bad:#9c4136;
+  --shadow:0 10px 24px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+.container{
+  max-width:1100px;
+  margin:0 auto;
+  padding:28px 18px 56px;
+}
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-bottom:18px;
+}
+.back{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  text-decoration:none;
+  color:var(--accent);
+  font-weight:700;
+  padding:10px 14px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:var(--panel);
+}
+h1{
+  margin:6px 0 10px;
+  font-size:34px;
+}
+.lead{
+  margin:0 0 24px;
+  color:var(--muted);
+  line-height:1.65;
+}
+.layout{
+  display:grid;
+  grid-template-columns:380px 1fr;
+  gap:18px;
+}
+.panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:20px;
+  box-shadow:var(--shadow);
+}
+.controls{
+  padding:20px;
+  position:sticky;
+  top:16px;
+  align-self:start;
+}
+.section + .section{margin-top:18px}
+.section h2{
+  margin:0 0 12px;
+  font-size:18px;
+}
+.control{
+  padding:14px 0;
+  border-top:1px solid #ece5d4;
+}
+.control:first-of-type{border-top:0;padding-top:0}
+.label-row{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:8px;
+  font-weight:700;
+}
+.label-row span:last-child{color:var(--accent)}
+input[type="range"]{width:100%}
+.hint{
+  margin-top:6px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.45;
+}
+.preset-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.preset-btn,.ghost-btn{
+  border:1px solid var(--line);
+  background:#fff;
+  border-radius:14px;
+  padding:12px;
+  cursor:pointer;
+  font:inherit;
+  text-align:left;
+}
+.preset-btn:hover,.ghost-btn:hover{border-color:#c8ba98; transform:translateY(-1px)}
+.ghost-btn{background:var(--accent-soft); font-weight:700}
+.main{padding:20px}
+.summary{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+}
+.stat{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:16px;
+}
+.stat .k{font-size:13px;color:var(--muted);margin-bottom:8px}
+.stat .v{font-size:28px;font-weight:800}
+.stat .sub{margin-top:6px;font-size:13px;color:var(--muted);line-height:1.4}
+.emphasis{
+  margin-top:16px;
+  padding:18px;
+  border-radius:18px;
+  background:linear-gradient(135deg,#fff8e6,#fff);
+  border:1px solid #e9d9af;
+}
+.emphasis h2{margin:0 0 10px;font-size:20px}
+.emphasis p{margin:0;line-height:1.7}
+.grid-wrap{margin-top:18px}
+.grid-header{
+  display:flex;justify-content:space-between;align-items:end;gap:10px;flex-wrap:wrap;
+  margin-bottom:10px;
+}
+.grid-header h2{margin:0;font-size:18px}
+.grid-header .note{color:var(--muted);font-size:14px}
+.people-grid{
+  display:grid;
+  grid-template-columns:repeat(25, minmax(0,1fr));
+  gap:4px;
+  background:#f2ecde;
+  padding:10px;
+  border-radius:18px;
+  border:1px solid var(--line);
+}
+.cell{
+  aspect-ratio:1/1;
+  border-radius:4px;
+  background:#d8d1bf;
+}
+.cell.tp{background:var(--good)}
+.cell.fn{background:#8eb594}
+.cell.fp{background:var(--bad)}
+.cell.tn{background:#d7cab2}
+.legend{
+  display:flex;flex-wrap:wrap;gap:12px 18px;
+  margin-top:12px;
+  color:var(--muted);
+  font-size:14px;
+}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:13px;height:13px;border-radius:3px;display:inline-block}
+.explain{
+  margin-top:18px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+.box{
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:16px;
+  background:#fff;
+}
+.box h3{margin:0 0 10px;font-size:17px}
+.box p{margin:0;line-height:1.65}
+.formula{
+  margin-top:12px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  background:#f8f4ea;
+  border:1px solid #eadfca;
+  border-radius:12px;
+  padding:12px;
+  font-size:13px;
+  overflow:auto;
+}
+.footer{
+  margin-top:16px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.55;
+}
+@media (max-width: 900px){
+  .layout{grid-template-columns:1fr}
+  .controls{position:static}
+  .summary,.explain{grid-template-columns:1fr 1fr}
+}
+@media (max-width: 640px){
+  h1{font-size:29px}
+  .summary,.explain,.preset-grid{grid-template-columns:1fr}
+  .people-grid{grid-template-columns:repeat(20,minmax(0,1fr))}
+}
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <a class="back" href="index.html">← 목록으로</a>
+    </div>
 
+    <h1>베이즈 검사 실험</h1>
+    <p class="lead">
+      검사 정확도가 높아 보여도, <strong>질병 자체가 매우 드문 경우</strong>에는 양성 판정 중 상당수가 가짜 양성일 수 있다.
+      이 실험은 “양성이면 거의 확실히 환자겠지?”라는 직관이 왜 자주 틀리는지 보여준다.
+    </p>
+
+    <div class="layout">
+      <aside class="panel controls">
+        <div class="section">
+          <h2>직접 조절</h2>
+          <div class="control">
+            <div class="label-row">
+              <span>유병률</span>
+              <span id="prevalenceValue">1.0%</span>
+            </div>
+            <input id="prevalence" type="range" min="0.1" max="30" step="0.1" value="1.0" />
+            <div class="hint">전체 인구 중 실제 환자 비율</div>
+          </div>
+          <div class="control">
+            <div class="label-row">
+              <span>민감도</span>
+              <span id="sensitivityValue">99.0%</span>
+            </div>
+            <input id="sensitivity" type="range" min="50" max="100" step="0.1" value="99.0" />
+            <div class="hint">실제 환자를 양성으로 잡아내는 비율</div>
+          </div>
+          <div class="control">
+            <div class="label-row">
+              <span>특이도</span>
+              <span id="specificityValue">95.0%</span>
+            </div>
+            <input id="specificity" type="range" min="50" max="100" step="0.1" value="95.0" />
+            <div class="hint">실제 건강한 사람을 음성으로 판정하는 비율</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>빠른 예시</h2>
+          <div class="preset-grid">
+            <button class="preset-btn" data-p="1" data-se="99" data-sp="95">
+              <strong>희귀 질환</strong><br>유병률 1%
+            </button>
+            <button class="preset-btn" data-p="10" data-se="99" data-sp="95">
+              <strong>상대적 고위험군</strong><br>유병률 10%
+            </button>
+            <button class="preset-btn" data-p="1" data-se="90" data-sp="99">
+              <strong>특이도 높은 검사</strong><br>가짜 양성 적음
+            </button>
+            <button class="preset-btn" data-p="20" data-se="80" data-sp="80">
+              <strong>정확도 보통</strong><br>직관 비교용
+            </button>
+          </div>
+        </div>
+
+        <div class="section">
+          <button class="ghost-btn" id="resetBtn">기본값으로 되돌리기</button>
+        </div>
+      </aside>
+
+      <main class="panel main">
+        <section class="summary">
+          <div class="stat">
+            <div class="k">양성 예측도</div>
+            <div class="v" id="ppvValue">16.7%</div>
+            <div class="sub">양성 판정을 받은 사람 중 실제 환자 비율</div>
+          </div>
+          <div class="stat">
+            <div class="k">실제 환자</div>
+            <div class="v" id="diseaseCount">100</div>
+            <div class="sub">10,000명 기준</div>
+          </div>
+          <div class="stat">
+            <div class="k">진짜 양성</div>
+            <div class="v" id="tpCount">99</div>
+            <div class="sub">환자인데 양성</div>
+          </div>
+          <div class="stat">
+            <div class="k">가짜 양성</div>
+            <div class="v" id="fpCount">495</div>
+            <div class="sub">건강한데 양성</div>
+          </div>
+        </section>
+
+        <section class="emphasis">
+          <h2 id="headline">양성이라고 해도 실제 환자일 확률은 16.7%</h2>
+          <p id="explainSentence">
+            이 경우 검사 자체는 좋아 보이지만, 질병이 드물어서 건강한 사람 쪽에서 나온 가짜 양성이 더 많다.
+          </p>
+        </section>
+
+        <section class="grid-wrap">
+          <div class="grid-header">
+            <h2>1,000명 축소 시각화</h2>
+            <div class="note">색은 검사 결과와 실제 상태를 함께 보여준다</div>
+          </div>
+          <div class="people-grid" id="peopleGrid"></div>
+          <div class="legend">
+            <span><i class="sw" style="background:#2f6b3c"></i>진짜 양성</span>
+            <span><i class="sw" style="background:#8eb594"></i>가짜 음성</span>
+            <span><i class="sw" style="background:#9c4136"></i>가짜 양성</span>
+            <span><i class="sw" style="background:#d7cab2"></i>진짜 음성</span>
+          </div>
+        </section>
+
+        <section class="explain">
+          <div class="box">
+            <h3>왜 직관이 틀리나</h3>
+            <p id="intuitionText">
+              사람은 “검사 정확도 95~99%”라는 숫자에 먼저 끌린다. 하지만 실제 핵심은 검사 정확도만이 아니라, 애초에 환자가 얼마나 드문가까지 함께 봐야 한다.
+            </p>
+          </div>
+          <div class="box">
+            <h3>계산 구조</h3>
+            <p>
+              양성 예측도는 <strong>진짜 양성 / 전체 양성</strong>이다. 전체 양성에는 진짜 양성뿐 아니라 가짜 양성도 들어간다.
+            </p>
+            <div class="formula" id="formulaText"></div>
+          </div>
+        </section>
+
+        <div class="footer">
+          기준 모집단은 10,000명으로 계산하고, 아래 시각화는 1,000명으로 축소해 비율만 보여준다.
+        </div>
+      </main>
+    </div>
+  </div>
+
+<script>
+const els = {
+  prevalence: document.getElementById('prevalence'),
+  sensitivity: document.getElementById('sensitivity'),
+  specificity: document.getElementById('specificity'),
+  prevalenceValue: document.getElementById('prevalenceValue'),
+  sensitivityValue: document.getElementById('sensitivityValue'),
+  specificityValue: document.getElementById('specificityValue'),
+  ppvValue: document.getElementById('ppvValue'),
+  diseaseCount: document.getElementById('diseaseCount'),
+  tpCount: document.getElementById('tpCount'),
+  fpCount: document.getElementById('fpCount'),
+  headline: document.getElementById('headline'),
+  explainSentence: document.getElementById('explainSentence'),
+  intuitionText: document.getElementById('intuitionText'),
+  formulaText: document.getElementById('formulaText'),
+  peopleGrid: document.getElementById('peopleGrid'),
+  resetBtn: document.getElementById('resetBtn')
+};
+
+function round1(n){ return Math.round(n * 10) / 10; }
+function formatPct(n){ return n.toFixed(1) + '%'; }
+function formatInt(n){ return Math.round(n).toLocaleString('ko-KR'); }
+
+function buildGrid(tp, fn, fp, tn){
+  const total = 1000;
+  const scale = 1000 / 10000;
+  const scaled = {
+    tp: Math.round(tp * scale),
+    fn: Math.round(fn * scale),
+    fp: Math.round(fp * scale),
+    tn: Math.round(tn * scale)
+  };
+  let used = scaled.tp + scaled.fn + scaled.fp + scaled.tn;
+  scaled.tn += total - used;
+
+  const items = [];
+  for(let i=0;i<scaled.tp;i++) items.push('tp');
+  for(let i=0;i<scaled.fn;i++) items.push('fn');
+  for(let i=0;i<scaled.fp;i++) items.push('fp');
+  for(let i=0;i<scaled.tn;i++) items.push('tn');
+
+  els.peopleGrid.innerHTML = items.map(cls => `<div class="cell ${cls}"></div>`).join('');
+}
+
+function update(){
+  const p = parseFloat(els.prevalence.value) / 100;
+  const se = parseFloat(els.sensitivity.value) / 100;
+  const sp = parseFloat(els.specificity.value) / 100;
+
+  els.prevalenceValue.textContent = formatPct(parseFloat(els.prevalence.value));
+  els.sensitivityValue.textContent = formatPct(parseFloat(els.sensitivity.value));
+  els.specificityValue.textContent = formatPct(parseFloat(els.specificity.value));
+
+  const N = 10000;
+  const disease = N * p;
+  const healthy = N - disease;
+  const tp = disease * se;
+  const fn = disease * (1 - se);
+  const tn = healthy * sp;
+  const fp = healthy * (1 - sp);
+  const positive = tp + fp;
+  const ppv = positive === 0 ? 0 : (tp / positive) * 100;
+
+  els.ppvValue.textContent = formatPct(ppv);
+  els.diseaseCount.textContent = formatInt(disease);
+  els.tpCount.textContent = formatInt(tp);
+  els.fpCount.textContent = formatInt(fp);
+
+  els.headline.textContent = `양성이라고 해도 실제 환자일 확률은 ${formatPct(ppv)}`;
+
+  let sentence = '';
+  if (ppv < 30) {
+    sentence = '검사 수치가 높아도 유병률이 낮으면 가짜 양성이 많이 섞인다. 그래서 양성 = 거의 확실 이라는 직관이 무너진다.';
+  } else if (ppv < 70) {
+    sentence = '양성 판정은 의미가 있지만 아직 오진 가능성이 꽤 크다. 추가 검사나 사전 확률 정보가 중요하다.';
+  } else {
+    sentence = '이 조건에서는 양성이 실제 환자일 가능성이 꽤 높다. 유병률이 올라가거나 가짜 양성이 줄어든 효과다.';
+  }
+  els.explainSentence.textContent = sentence;
+
+  els.intuitionText.textContent = `지금 설정에서는 10,000명 중 실제 환자는 ${formatInt(disease)}명뿐이다. 이 중 ${formatInt(tp)}명은 양성으로 잘 잡히지만, 건강한 ${formatInt(healthy)}명 중에서도 ${formatInt(fp)}명이 양성으로 잘못 나온다. 결국 양성 집단 안에서 가짜 양성의 비중이 커질 수 있다.`;
+
+  els.formulaText.textContent =
+    `P(질병 | 양성) = [민감도 × 유병률] / [(민감도 × 유병률) + ((1 - 특이도) × (1 - 유병률))]\n` +
+    `= (${se.toFixed(3)} × ${p.toFixed(3)}) / [(${se.toFixed(3)} × ${p.toFixed(3)}) + (${(1-sp).toFixed(3)} × ${(1-p).toFixed(3)})]\n` +
+    `= ${ppv.toFixed(1)}%`;
+
+  buildGrid(tp, fn, fp, tn);
+}
+
+[els.prevalence, els.sensitivity, els.specificity].forEach(el => {
+  el.addEventListener('input', update);
+});
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    els.prevalence.value = btn.dataset.p;
+    els.sensitivity.value = btn.dataset.se;
+    els.specificity.value = btn.dataset.sp;
+    update();
+  });
+});
+
+els.resetBtn.addEventListener('click', () => {
+  els.prevalence.value = '1.0';
+  els.sensitivity.value = '99.0';
+  els.specificity.value = '95.0';
+  update();
+});
+
+update();
+</script>
+</body>
+</html>
