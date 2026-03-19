@@ -6,33 +6,110 @@
 <title>Probability Lab</title>
 <link rel="stylesheet" href="assets/style.css">
 <style>
-body { font-family: Arial; background:#f6f3ea; margin:0; }
-.wrap { max-width:900px; margin:0 auto; padding:40px 20px; }
-h1 { margin-bottom:10px; }
-.card {
-  background:white;
-  border-radius:16px;
-  padding:20px;
-  border:1px solid #ddd;
-  margin-top:20px;
-  cursor:pointer;
-  transition:0.15s;
+:root {
+  --bg: #f6f3ea;
+  --panel: #fffdf7;
+  --line: #d8d1bf;
+  --text: #1f1f1f;
+  --muted: #66604f;
+  --accent: #7a5c2e;
 }
-.card:hover { transform:translateY(-3px); }
-.title { font-size:20px; font-weight:bold; }
-.desc { color:#555; margin-top:6px; }
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+}
+.wrap {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 40px 20px 56px;
+}
+h1 {
+  margin: 0 0 10px;
+  font-size: 34px;
+}
+.lead {
+  color: var(--muted);
+  margin: 0 0 28px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.section-title {
+  margin: 32px 0 14px;
+  font-size: 18px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+.card {
+  background: var(--panel);
+  border-radius: 18px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+}
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.07);
+  border-color: #cdbf9d;
+}
+.badge {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #efe6d2;
+  color: #6b5430;
+  font-size: 12px;
+  font-weight: 700;
+}
+.title {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+.desc {
+  color: #555;
+  line-height: 1.55;
+}
+.footer-note {
+  margin-top: 28px;
+  color: var(--muted);
+  font-size: 14px;
+}
+@media (max-width: 640px) {
+  .wrap { padding: 28px 16px 40px; }
+  h1 { font-size: 29px; }
+}
 </style>
 </head>
 <body>
 <div class="wrap">
-<h1>Probability Lab</h1>
-<p>확률 직관을 실험으로 확인하는 공간</p>
+  <h1>Probability Lab</h1>
+  <p class="lead">확률 직관이 실제 결과와 어떻게 어긋나는지, 직접 실험하면서 확인하는 공간</p>
 
-<div class="card" onclick="location.href='experiments/montyhall.html'">
-  <div class="title">몬티홀 문제</div>
-  <div class="desc">50:50처럼 보이지만 실제로는 변경이 2/3인 문제</div>
-</div>
+  <h2 class="section-title">직관을 깨는 대표 실험</h2>
+  <div class="grid">
+    <div class="card" onclick="location.href='experiments/montyhall.html'">
+      <div class="badge">조건부 확률</div>
+      <div class="title">몬티홀 문제</div>
+      <div class="desc">50:50처럼 보이지만 실제로는 변경이 2/3인 고전적인 확률 역설</div>
+    </div>
 
+    <div class="card" onclick="location.href='experiments/birthday.html'">
+      <div class="badge">집합 확률</div>
+      <div class="title">생일 문제</div>
+      <div class="desc">23명만 있어도 같은 생일이 겹칠 확률이 50%를 넘는다는 직관 붕괴 실험</div>
+    </div>
+  </div>
+
+  <p class="footer-note">실험은 계속 추가될 예정입니다.</p>
 </div>
 </body>
 </html>
